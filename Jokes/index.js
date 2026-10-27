@@ -12,8 +12,16 @@ app.get("/random", function (req, res) {
 });
 
 // 2. Get a specific joke
+app.get("/jokes/3", function (req, res) {
+  res.json(jokes[3]);
+});
 
 // 3. Filter jokes by type
+app.get("/filter", function (req, res) {
+  const joketype = req.query.jokeType;
+  const filteredJokes = jokes.filter((joke) => joke.joketype === joketype);
+  res.json(filteredJokes);
+});
 
 // 4. Post a new joke
 
