@@ -30,6 +30,30 @@ app.get("/", function (req, res) {
 
 // Your routes go here
 
+// 4. recipe as JSON
+app.get("/recipes", function (req, res) {
+  res.json(getRecipes());
+});
+
+// 5. path parameter
+app.get("/recipes/:index", function (req, res) {
+  const index = parseInt(req.params.index);
+  const recipe = getRecipes()[index];
+  if (!recipe) return res.status(404).send("No recipe number " + index);
+  res.send(recipePage(recipe));
+});
+
+// 6. query parameter
+app.get("/search", function (req, res) {
+  const ingredient = (req.query.ingredient || "").toLowerCase();
+  const found = getRecipes().filter((recipe) =>
+    recipe.ingredients.some((item) => item.toLowerCase() === ingredient)
+  );
+  res.json(found);
+});
+
+
+
 app.listen(port, function () {
   console.log("Listening on http://localhost:" + port);
 });

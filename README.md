@@ -34,12 +34,16 @@ Open `http://localhost:3000`.
 
 **Question 1:** which recipe do you see? Which line of `index.js` picks that one?
 
+- I see the recipe for pasta carbonara. The line in app.get("/") where we actually call the recipePage() function with recipes[0] picks that recipe, since it's the first entry (element 0) in  recipes.json.
+
 ## 2. Add your own recipes
 
 Add **two** recipes of your own to the end of `recipes.json`, in the same shape as the others. Reload the page.
 
 **TODO:** take away one comma between two recipes, save, and reload the page.
 **Question 2:** what does the server terminal say? Why is JSON this strict? (Week 3 slides.) Put the comma back.
+
+- The server terminal gives a syntax error, expected ',' or '[' after array element. Without commas between elements, the array can't be read properly
 
 ## 3. Send a request without the browser
 
@@ -59,6 +63,8 @@ Send the second request in `requests.http`, then open `http://localhost:3000/rec
 
 **Question 3:** look at the `Content-Type` header for `/` and for `/recipes`. What's different, and which one is for people and which one is for programs?
 
+- For the `/` header, the content type is `text.html`. For `/recipes`, it's `application/json`. Both have charset=utf-8. The body is the same text (read from recipes.json), but each different content-type is just how it's displayed on the page. Since the recipePage() function uses html elements like `<h1>`, the request for recipes[0] reads it as html. For the second call, it reads it as the raw json data, and you can tell by the way it renders on the page. 
+
 ## 5. One recipe: a path parameter
 
 ```js
@@ -73,7 +79,11 @@ Send the `/recipes/1` request. `:index` is a **path parameter**: whatever is in 
 
 **Question 4:** which recipe is `/recipes/1`? Why not the first one?
 
+- Because the recipe data is in an array, and array indexing starts at 0.
+
 **TODO:** send the `/recipes/99` request. **Question 5:** what happens, and what does the terminal say? Fix it: put this line right after `const recipe = ...`, and send it again:
+
+- The terminal gives a type error, as we try to read past what indexes are actually in the array. After pasting the error handling, there's a nice 404 not found instead.
 
 ```js
 if (!recipe) return res.status(404).send("No recipe number " + index);
@@ -92,6 +102,8 @@ app.get("/search", function (req, res) {
 Send the `/search?ingredient=Eggs` request. Everything after `?` is the **query string**, and Express puts it in `req.query`.
 
 **TODO:** change `Eggs` to `eggs` and send it again. **Question 6:** what comes back, and why? (Optional: make the search work for any capitalisation.)
+
+- An empty array comes back, because the query is looking for an exact match, captialisation included.
 
 Commit: `Part 1: recipes`
 
@@ -135,6 +147,8 @@ app.get("/jokes/:id", function (req, res) {
 
 **Question 7:** why do we need `parseInt` here? What would `joke.id === id` do without it?
 
+- ParseInt converts a passed string into an integer, so if we get rid of parseInt, the request still goes through but no joke displays, since we cannot get a joke id (=== comparision doesn't find anything since types don't match).
+
 **TODO:** send the `/jokes/99` request. It says `200 OK` but sends nothing back. Fix it the same way as step 5, with a `404`.
 
 ## 8. Filter jokes by type
@@ -159,6 +173,8 @@ Send request **4**. To get your new joke back, change request **2** to `/jokes/1
 
 **TODO:** save `index.js` (that restarts the server), then send `/jokes/13` again.
 **Question 8:** where did your joke go? Why? What would fix it? (Hint: Part 3.)
+
+- The joke doesn't exist yet after the refresh without sending request #4 again, because that request contains the new joke, which gets pushed to the jokes array in the function. 
 
 ## 10. Put and patch
 
@@ -194,6 +210,12 @@ Send requests **5** and **6**.
 **TODO:** in request **5** (PUT), delete `text=...&` so it only sends `type=Programming`, and send it again.
 **Question 9:** what happened to the joke's text? So what is the difference between PUT and PATCH?
 
+- The joke's text disappeared because in put, we never record the existing joke, then later in the replacement joke, there's no value to put as an alternate option, like in patch's:
+`
+    jokeText: req.body.text || existingJoke.jokeText,
+    jokeType: req.body.type || existingJoke.jokeType,
+`
+
 ## 11. Delete a joke
 
 ```js
@@ -212,8 +234,13 @@ Send request **7**, then send it again.
 
 **Question 10:** what status do you get the first time, and the second time?
 
+- First time: 200 OK
+- Second time: 404 NOT FOUND
+
 **TODO:** with joke 4 deleted, send request **4** (POST) once.
 **Question 11:** what `id` does the new joke get? Is there already a joke with that id? Why is that a problem? (Optional: fix it.)
+
+- The new joke gets id 12, the 13th element in the array. Instead of filling the spot we deleted, it leaves a gap there (failed second delete request), and continues to append at the end of the array.
 
 **Comment your `Jokes/index.js`** in your own words: one comment above each route saying what it does.
 
